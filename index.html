@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anonymous Message Wall</title>
+
+  <!-- Favicon for browsers -->
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <!-- Favicon for Apple devices -->
+  <link rel="apple-touch-icon" href="favicon.png">
+
+  <!-- Theme color for mobile browsers -->
+  <meta name="theme-color" content="#ffffff">
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+  <!-- Animated background particles -->
+  <div class="particles" id="particles"></div>
+
+  <header>
+    <h1>Anonymous Message Wall</h1>
+    <p>Share your thoughts freely without revealing your identity</p>
+  </header>
+
+  <main>
+    <section class="confession-form">
+      <form id="confessionForm">
+        <textarea 
+          id="confessionInput" 
+          placeholder="What's on your mind? Share your anonymous message here... (max 1000 characters)" 
+          maxlength="1000"
+          required></textarea>
+        <div class="form-footer">
+          <span id="charCount">0/1000</span>
+          <button type="submit">
+            <i class="fas fa-paper-plane"></i>
+            Post Message
+          </button>
+        </div>
+        <p id="errorMsg" class="error"></p>
+      </form>
+    </section>
+
+    <section class="confessions-feed">
+      <h2>Recent Messages</h2>
+      <div id="confessionsContainer">
+        <!-- Loader -->
+        <div class="loader" id="loader">
+          <div class="loader-spinner"></div>
+        </div>
+
+        <!-- Empty state -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+          <i class="fas fa-comment-slash"></i>
+          <p>No messages yet. Be the first to share!</p>
+        </div>
+      </div>
+      <!-- Load More Button Container -->
+      <div id="loadMoreContainer" style="text-align: center; margin: 20px 0;"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>All messages are anonymous &bull; Be kind to others &bull; <a href="#" id="privacyLink">Privacy Policy</a></p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
