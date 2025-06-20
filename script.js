@@ -46,6 +46,7 @@
     let isFetching = false;
     let hasMoreMessages = true;
     let unsubscribeListener = null;
+    const LIKED_MESSAGES_KEY = 'likedMessages';
 
     /* ---------------- Utilities ----------------------- */
     const showError = (message) => {
@@ -373,6 +374,10 @@
       el.className = 'confession-card';
       el.dataset.id = confession.id;
 
+      // Check if user has liked this message
+      const likedMessages = JSON.parse(localStorage.getItem(LIKED_MESSAGES_KEY)) || [];
+      const isLiked = likedMessages.includes(confession.id);
+      
       el.innerHTML = `
         <p class="confession-text">${escapeHTML(confession.text)}</p>
         <div class="confession-footer">
@@ -382,7 +387,7 @@
           </span>
           <div class="confession-actions">
             <button class="action-btn like-btn" title="Like">
-              <i class="${confession.likes > 0 ? 'fas' : 'far'} fa-heart"></i>
+              <i class="${isLiked ? 'fas' : (confession.likes > 0 ? 'fas' : 'far')} fa-heart"></i>
               <span class="like-count">${confession.likes}</span>
             </button>
             <button class="action-btn share-btn" title="Share">
@@ -418,6 +423,15 @@
 
       // Like functionality
       likeBtn.addEventListener('click', async () => {
+        const messageId = confession.id;
+        let likedMessages = JSON.parse(localStorage.getItem(LIKED_MESSAGES_KEY)) || [];
+        
+        // Check if already liked
+        if (likedMessages.includes(messageId)) {
+          showError("You've already liked this message!");
+          return;
+        }
+        
         if (likeBtn.classList.contains('disabled')) return;
         
         const likeCountSpan = likeBtn.querySelector('.like-count');
@@ -435,6 +449,11 @@
           await confessionsRef.doc(confession.id).update({
             likes: firebase.firestore.FieldValue.increment(1)
           });
+          
+          // Record like in localStorage
+          likedMessages.push(messageId);
+          localStorage.setItem(LIKED_MESSAGES_KEY, JSON.stringify(likedMessages));
+          
         } catch (err) {
           // Revert on failure
           console.error("Error updating like:", err);

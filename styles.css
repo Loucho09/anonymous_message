@@ -697,3 +697,19 @@ button {
     width: auto;
   }
 }
+
+/* Add this to the bottom of your CSS file */
+.like-btn.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.like-btn.disabled:hover {
+    background: transparent;
+    color: #5f6368;
+}
+
+/* Make liked hearts red */
+.like-btn .fas.fa-heart {
+    color: #e53935;
+}
