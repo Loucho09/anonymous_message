@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Send Anonymous Confession</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="container">
+    <div class="confession-card">
+      <h1>Send Anonymous Confession</h1>
+      
+      <div id="userContainer">
+        <div class="user-info">
+          <img id="userAvatar" class="user-avatar" src="" alt="User Avatar">
+          <div class="user-name" id="userName"></div>
+        </div>
+        <p>Your message will be completely anonymous</p>
+      </div>
+      
+      <textarea id="confessionMessage" placeholder="Type your confession here... (max 500 characters)" maxlength="500"></textarea>
+      <button id="sendBtn" class="btn"><i class="fas fa-paper-plane"></i> Send Confession</button>
+      <div id="statusMessage"></div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAKO8FN5RztfJ4vqVO-2BksvDjin2naPBw",
+      authDomain: "anonymous-messge-5ac05.firebaseapp.com",
+      projectId: "anonymous-messge-5ac05",
+      storageBucket: "anonymous-messge-5ac05.appspot.com",
+      messagingSenderId: "328794885867",
+      appId: "1:328794885867:web:2199b6b362b16cec8978ae",
+      measurementId: "G-Z8EFD1R4GW"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const usersRef = db.collection("users");
+    const confessionsRef = db.collection("confessions");
+
+    // DOM Elements
+    const userAvatar = document.getElementById('userAvatar');
+    const userName = document.getElementById('userName');
+    const confessionMessage = document.getElementById('confessionMessage');
+    const sendBtn = document.getElementById('sendBtn');
+    const statusMessage = document.getElementById('statusMessage');
+
+    // Get link ID from URL
+    const pathParts = window.location.pathname.split('/');
+    const linkID = pathParts[pathParts.length - 1];
+
+    // Load user profile
+    async function loadUserProfile() {
+      try {
+        const userQuery = await usersRef.where('linkID', '==', linkID).limit(1).get();
+        
+        if (userQuery.empty) {
+          statusMessage.textContent = 'User not found. Please check the link.';
+          statusMessage.className = 'error';
+          statusMessage.style.display = 'block';
+          return;
+        }
+        
+        const userDoc = userQuery.docs[0];
+        const userData = userDoc.data();
+        
+        userAvatar.src = userData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.displayName)}&background=random&color=fff`;
+        userName.textContent = userData.displayName;
+      } catch (error) {
+        console.error('Error loading user:', error);
+        statusMessage.textContent = 'Failed to load user. Please try again.';
+        statusMessage.className = 'error';
+        statusMessage.style.display = 'block';
+      }
+    }
+
+    // Send confession
+    sendBtn.addEventListener('click', async () => {
+      const message = confessionMessage.value.trim();
+      
+      if (!message) {
+        statusMessage.textContent = 'Please enter a confession message';
+        statusMessage.className = 'error';
+        statusMessage.style.display = 'block';
+        return;
+      }
+      
+      try {
+        const userQuery = await usersRef.where('linkID', '==', linkID).limit(1).get();
+        
+        if (userQuery.empty) {
+          statusMessage.textContent = 'User not found. Please check the link.';
+          statusMessage.className = 'error';
+          statusMessage.style.display = 'block';
+          return;
+        }
+        
+        const recipient = userQuery.docs[0].data();
+        
+        await confessionsRef.add({
+          toUserID: recipient.uid,
+          message: message,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          isRead: false
+        });
+        
+        statusMessage.textContent = 'Confession sent successfully!';
+        statusMessage.className = 'success';
+        statusMessage.style.display = 'block';
+        confessionMessage.value = '';
+        
+        setTimeout(() => {
+          statusMessage.style.display = 'none';
+        }, 3000);
+      } catch (error) {
+        console.error('Error sending confession:', error);
+        statusMessage.textContent = 'Failed to send confession. Please try again.';
+        statusMessage.className = 'error';
+        statusMessage.style.display = 'block';
+      }
+    });
+
+    // Initialize
+    loadUserProfile();
+  </script>
+</body>
+</html>

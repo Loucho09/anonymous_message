@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Dashboard - Anonymous Wall</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="particles" id="particles"></div>
+  
+  <nav class="navbar">
+    <div class="container">
+      <a href="index.html" class="logo">Anonymous Wall</a>
+      <div class="user-menu" id="userMenu" style="display: none;">
+        <img id="userAvatar" class="user-avatar" src="" alt="Avatar">
+        <span id="usernameDisplay"></span>
+        <button id="logoutBtn" class="auth-btn">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h1>Your Confession Dashboard</h1>
+      <p>View all anonymous messages sent to you</p>
+    </div>
+
+    <div class="user-profile" id="userProfile">
+      <div class="loader" id="profileLoader">
+        <div class="loader-spinner"></div>
+      </div>
+    </div>
+
+    <div class="user-confessions">
+      <h2>Your Confessions</h2>
+      <div id="confessionsList">
+        <div class="loader">
+          <div class="loader-spinner"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAKO8FN5RztfJ4vqVO-2BksvDjin2naPBw",
+      authDomain: "anonymous-messge-5ac05.firebaseapp.com",
+      projectId: "anonymous-messge-5ac05",
+      storageBucket: "anonymous-messge-5ac05.appspot.com",
+      messagingSenderId: "328794885867",
+      appId: "1:328794885867:web:2199b6b362b16cec8978ae",
+      measurementId: "G-Z8EFD1R4GW"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    const usersRef = db.collection("users");
+    const confessionsRef = db.collection("confessions");
+
+    // DOM Elements
+    const userMenu = document.getElementById('userMenu');
+    const userAvatar = document.getElementById('userAvatar');
+    const usernameDisplay = document.getElementById('usernameDisplay');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const userProfile = document.getElementById('userProfile');
+    const profileLoader = document.getElementById('profileLoader');
+    const confessionsList = document.getElementById('confessionsList');
+
+    // Get user ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const userID = urlParams.get('uid');
+
+    // Auth state listener
+    auth.onAuthStateChanged(user => {
+      if (user && user.uid === userID) {
+        userMenu.style.display = 'flex';
+        usernameDisplay.textContent = user.displayName || "Anonymous User";
+        userAvatar.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || "Anonymous")}&background=random&color=fff`;
+        loadUserDashboard(userID);
+      } else {
+        window.location.href = 'index.html';
+      }
+    });
+
+    // Load user dashboard
+    async function loadUserDashboard(userId) {
+      try {
+        // Get user profile
+        const userDoc = await usersRef.doc(userId).get();
+        if (!userDoc.exists) {
+          userProfile.innerHTML = '<p class="error">User profile not found</p>';
+          profileLoader.style.display = 'none';
+          return;
+        }
+        
+        const userData = userDoc.data();
+        
+        // Display profile
+        const profileHTML = `
+          <img src="${userData.avatar}" class="user-avatar" alt="Avatar">
+          <div class="user-info">
+            <h2>${userData.displayName}</h2>
+            <p>Member since: ${userData.createdAt.toDate().toLocaleDateString()}</p>
+            <div class="profile-link">
+              <input type="text" value="${window.location.origin}/u/${userData.linkID}" readonly>
+              <button id="copyProfileBtn" class="copy-btn">Copy Link</button>
+            </div>
+          </div>
+        `;
+        
+        userProfile.innerHTML = profileHTML;
+        profileLoader.style.display = 'none';
+        
+        // Add copy functionality
+        document.getElementById('copyProfileBtn').addEventListener('click', () => {
+          const copyText = document.querySelector('.profile-link input');
+          copyText.select();
+          document.execCommand('copy');
+          alert('Profile link copied to clipboard!');
+        });
+        
+        // Load confessions
+        const confessionsQuery = confessionsRef
+          .where('toUserID', '==', userId)
+          .orderBy('timestamp', 'desc');
+        
+        const snapshot = await confessionsQuery.get();
+        
+        if (snapshot.empty) {
+          confessionsList.innerHTML = '<p class="no-confessions">No confessions yet. Share your link to receive messages!</p>';
+          return;
+        }
+        
+        let confessionsHTML = '';
+        
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const date = data.timestamp.toDate().toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+          
+          confessionsHTML += `
+            <div class="confession-card">
+              <p class="confession-text">${data.message}</p>
+              <div class="confession-footer">
+                <span class="confession-time">${date}</span>
+                <button class="action-btn delete-btn" data-id="${doc.id}">
+                  <i class="fas fa-trash"></i> Delete
+                </button>
+              </div>
+            </div>
+          `;
+        });
+        
+        confessionsList.innerHTML = confessionsHTML;
+        
+        // Add delete event listeners
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const confessionID = btn.getAttribute('data-id');
+            deleteConfession(confessionID);
+          });
+        });
+      } catch (error) {
+        console.error('Error loading dashboard:', error);
+        userProfile.innerHTML = '<p class="error">Failed to load dashboard</p>';
+        profileLoader.style.display = 'none';
+      }
+    }
+
+    // Delete confession
+    async function deleteConfession(confessionID) {
+      if (!confirm('Are you sure you want to delete this confession?')) return;
+      
+      try {
+        await confessionsRef.doc(confessionID).delete();
+        // Reload confessions
+        loadUserDashboard(userID);
+      } catch (error) {
+        console.error('Error deleting confession:', error);
+        alert('Failed to delete confession');
+      }
+    }
+
+    // Logout
+    logoutBtn.addEventListener('click', () => {
+      auth.signOut();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /confessions/{confession} {
+      allow read: if true;
+      allow create: if request.auth != null || 
+                    (request.resource.data.text is string &&
+                     request.resource.data.text.size() <= 1000);
+      allow update: if request.auth != null && 
+                    request.auth.uid == resource.data.userId;
+      allow delete: if request.auth != null && 
+                    request.auth.uid == resource.data.userId;
+    }
+    
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if request.auth != null && 
+                    request.auth.uid == userId;
+      allow update: if request.auth != null && 
+                    request.auth.uid == userId;
+    }
+    
+    match /confessions/{confession}/comments/{comment} {
+      allow read: if true;
+      allow create: if request.auth != null;
+    }
+  }
+}

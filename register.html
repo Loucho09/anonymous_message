@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anonymous Confession Wall - Registration</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="welcome-section">
+            <h2>Welcome to SecretShare</h2>
+            <p>Share and receive anonymous confessions in a safe, private space.</p>
+            
+            <div class="features">
+                <div class="feature">
+                    <i class="fas fa-user-secret"></i>
+                    <div>
+                        <h3>Complete Anonymity</h3>
+                        <p>Your identity remains hidden from everyone</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-link"></i>
+                    <div>
+                        <h3>Personal Confession Link</h3>
+                        <p>Share your unique link to receive confessions</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-shield-alt"></i>
+                    <div>
+                        <h3>Secure & Private</h3>
+                        <p>End-to-end security for your peace of mind</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-mobile-alt"></i>
+                    <div>
+                        <h3>Mobile Friendly</h3>
+                        <p>Access your confessions anytime, anywhere</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="registration-section">
+            <div class="step-indicator">
+                <div class="step active">1</div>
+                <div class="step-line"></div>
+                <div class="step">2</div>
+                <div class="step-line"></div>
+                <div class="step">3</div>
+            </div>
+            
+            <!-- Step 1: Registration Type -->
+            <div class="step-content active" id="step1">
+                <h1>Create Your Account</h1>
+                <p>Choose how you want to register:</p>
+                
+                <button class="btn btn-primary" id="emailRegisterBtn">
+                    <i class="fas fa-envelope"></i> Continue with Email
+                </button>
+                
+                <button class="btn btn-google">
+                    <i class="fab fa-google"></i> Continue with Google
+                </button>
+                
+                <button class="btn btn-facebook">
+                    <i class="fab fa-facebook-f"></i> Continue with Facebook
+                </button>
+                
+                <div class="divider">
+                    <span>OR</span>
+                </div>
+                
+                <button class="btn btn-anonymous" id="anonymousBtn">
+                    <i class="fas fa-user-secret"></i> Continue Anonymously
+                </button>
+                
+                <p style="text-align: center; margin-top: 20px; color: #777;">
+                    Already have an account? <a href="#" style="color: var(--primary);">Sign In</a>
+                </p>
+            </div>
+            
+            <!-- Step 2: Registration Form -->
+            <div class="step-content" id="step2">
+                <h1>Create Your Account</h1>
+                
+                <div class="form-group">
+                    <label for="name">Display Name</label>
+                    <input type="text" id="name" placeholder="How you'll appear to others">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" placeholder="Your email address">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Create a password">
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" placeholder="Confirm your password">
+                </div>
+                
+                <button class="btn btn-primary" id="registerBtn">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </button>
+                
+                <div class="status-message" id="step2Status"></div>
+            </div>
+            
+            <!-- Step 3: Profile Setup -->
+            <div class="step-content" id="step3">
+                <h1>Customize Your Profile</h1>
+                
+                <div class="avatar-preview" id="avatarPreview">
+                    <i class="fas fa-user fa-3x" style="color: #777;"></i>
+                </div>
+                
+                <p style="text-align: center; margin-bottom: 20px;">Choose an avatar:</p>
+                
+                <div class="avatar-options">
+                    <div class="avatar-option selected" style="background: #FFADAD;"><i class="fas fa-smile"></i></div>
+                    <div class="avatar-option" style="background: #FFD6A5;"><i class="fas fa-cat"></i></div>
+                    <div class="avatar-option" style="background: #FDFFB6;"><i class="fas fa-dog"></i></div>
+                    <div class="avatar-option" style="background: #CAFFBF;"><i class="fas fa-robot"></i></div>
+                    <div class="avatar-option" style="background: #9BF6FF;"><i class="fas fa-moon"></i></div>
+                    <div class="avatar-option" style="background: #A0C4FF;"><i class="fas fa-star"></i></div>
+                    <div class="avatar-option" style="background: #BDB2FF;"><i class="fas fa-heart"></i></div>
+                    <div class="avatar-option" style="background: #FFC6FF;"><i class="fas fa-mask"></i></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="bio">Bio (Optional)</label>
+                    <textarea id="bio" placeholder="Tell others a little about yourself..." style="width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 10px; min-height: 100px;"></textarea>
+                </div>
+                
+                <button class="btn btn-primary" id="completeBtn">
+                    <i class="fas fa-check"></i> Complete Registration
+                </button>
+                
+                <div class="status-message" id="step3Status"></div>
+            </div>
+        </div>
+    </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAKO8FN5RztfJ4vqVO-2BksvDjin2naPBw",
+      authDomain: "anonymous-messge-5ac05.firebaseapp.com",
+      projectId: "anonymous-messge-5ac05",
+      storageBucket: "anonymous-messge-5ac05.appspot.com",
+      messagingSenderId: "328794885867",
+      appId: "1:328794885867:web:2199b6b362b16cec8978ae",
+      measurementId: "G-Z8EFD1R4GW"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // DOM Elements
+    const step1 = document.getElementById('step1');
+    const step2 = document.getElementById('step2');
+    const step3 = document.getElementById('step3');
+    const emailRegisterBtn = document.getElementById('emailRegisterBtn');
+    const anonymousBtn = document.getElementById('anonymousBtn');
+    const registerBtn = document.getElementById('registerBtn');
+    const completeBtn = document.getElementById('completeBtn');
+    const step2Status = document.getElementById('step2Status');
+    const step3Status = document.getElementById('step3Status');
+    const avatarOptions = document.querySelectorAll('.avatar-option');
+    const avatarPreview = document.getElementById('avatarPreview');
+
+    // Current state
+    let currentStep = 1;
+    let registrationMethod = '';
+    let selectedAvatar = 1;
+    let userData = {};
+
+    // Switch to step 2 (email registration)
+    emailRegisterBtn.addEventListener('click', () => {
+      registrationMethod = 'email';
+      currentStep = 2;
+      updateStepDisplay();
+    });
+
+    // Anonymous registration
+    anonymousBtn.addEventListener('click', () => {
+      registrationMethod = 'anonymous';
+      
+      // Show loading state
+      step2Status.style.display = 'block';
+      step2Status.className = 'status-message';
+      step2Status.textContent = 'Creating anonymous session...';
+      step2Status.classList.add('success');
+      
+      // Create anonymous user
+      auth.signInAnonymously()
+        .then((userCredential) => {
+          // Signed in anonymously
+          const user = userCredential.user;
+          
+          // Create user document
+          return db.collection('users').doc(user.uid).set({
+            uid: user.uid,
+            displayName: `Anonymous${Math.floor(Math.random() * 10000)}`,
+            avatar: `avatar-${Math.floor(Math.random() * 8) + 1}`,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            isAnonymous: true
+          });
+        })
+        .then(() => {
+          // Redirect to dashboard
+          step2Status.textContent = 'Success! Redirecting to your dashboard...';
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 1500);
+        })
+        .catch((error) => {
+          step2Status.textContent = `Error: ${error.message}`;
+          step2Status.classList.add('error');
+        });
+    });
+
+    // Handle email registration
+    registerBtn.addEventListener('click', () => {
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      
+      // Validation
+      if (!name || !email || !password || !confirmPassword) {
+        showError(step2Status, 'All fields are required');
+        return;
+      }
+      
+      if (password !== confirmPassword) {
+        showError(step2Status, 'Passwords do not match');
+        return;
+      }
+      
+      if (password.length < 6) {
+        showError(step2Status, 'Password must be at least 6 characters');
+        return;
+      }
+      
+      // Show loading state
+      step2Status.style.display = 'block';
+      step2Status.className = 'status-message';
+      step2Status.textContent = 'Creating account...';
+      step2Status.classList.add('success');
+      
+      // Create user with email/password
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          // User created
+          const user = userCredential.user;
+          
+          // Store temporary data for next step
+          userData = {
+            uid: user.uid,
+            displayName: name,
+            email: email
+          };
+          
+          // Move to next step
+          currentStep = 3;
+          updateStepDisplay();
+        })
+        .catch((error) => {
+          showError(step2Status, error.message);
+        });
+    });
+
+    // Handle profile completion
+    completeBtn.addEventListener('click', () => {
+      const bio = document.getElementById('bio').value;
+      
+      // Show loading state
+      step3Status.style.display = 'block';
+      step3Status.className = 'status-message';
+      step3Status.textContent = 'Saving profile...';
+      step3Status.classList.add('success');
+      
+      // Create user document
+      db.collection('users').doc(userData.uid).set({
+        uid: userData.uid,
+        displayName: userData.displayName,
+        email: userData.email,
+        avatar: `avatar-${selectedAvatar}`,
+        bio: bio,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        isAnonymous: false
+      })
+      .then(() => {
+        step3Status.textContent = 'Success! Redirecting to your dashboard...';
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1500);
+      })
+      .catch((error) => {
+        showError(step3Status, error.message);
+      });
+    });
+
+    // Avatar selection
+    avatarOptions.forEach((option, index) => {
+      option.addEventListener('click', () => {
+        // Remove selected class from all options
+        avatarOptions.forEach(opt => opt.classList.remove('selected'));
+        
+        // Add selected class to clicked option
+        option.classList.add('selected');
+        
+        // Update preview
+        avatarPreview.innerHTML = option.innerHTML;
+        avatarPreview.style.background = option.style.background;
+        
+        // Store selection
+        selectedAvatar = index + 1;
+      });
+    });
+
+    // Helper functions
+    function updateStepDisplay() {
+      // Hide all steps
+      step1.classList.remove('active');
+      step2.classList.remove('active');
+      step3.classList.remove('active');
+      
+      // Show current step
+      if (currentStep === 1) step1.classList.add('active');
+      if (currentStep === 2) step2.classList.add('active');
+      if (currentStep === 3) step3.classList.add('active');
+      
+      // Update step indicator
+      const steps = document.querySelectorAll('.step');
+      const stepLines = document.querySelectorAll('.step-line');
+      
+      steps.forEach((step, index) => {
+        step.classList.toggle('active', index < currentStep);
+      });
+      
+      stepLines.forEach((line, index) => {
+        line.classList.toggle('active', index < currentStep - 1);
+      });
+    }
+
+    function showError(element, message) {
+      element.textContent = message;
+      element.style.display = 'block';
+      element.className = 'status-message error';
+    }
+
+    // Initialize avatar preview
+    avatarPreview.innerHTML = document.querySelector('.avatar-option.selected').innerHTML;
+    avatarPreview.style.background = document.querySelector('.avatar-option.selected').style.background;
+  </script>
+</body>
+</html>

@@ -3,82 +3,526 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Anonymous Message Wall</title>
-
-  <!-- Favicon for browsers -->
-  <link rel="icon" type="image/png" href="favicon.png">
-
-  <!-- Favicon for Apple devices -->
-  <link rel="apple-touch-icon" href="favicon.png">
-
-  <!-- Theme color for mobile browsers -->
-  <meta name="theme-color" content="#ffffff">
-
-  <!-- Firebase SDK -->
+  <title>Anonymous Confession Wall</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-  
-  <!-- Styles -->
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --secondary: #34a853;
+      --accent: #fbbc05;
+      --light: #f8f9fa;
+      --dark: #202124;
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --shadow: rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Roboto', sans-serif;
+      line-height: 1.6;
+      color: var(--dark);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      min-height: 100vh;
+      padding: 20px;
+      overflow-x: hidden;
+      background-attachment: fixed;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    header {
+      text-align: center;
+      padding: 2rem 0 1.5rem;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      color: white;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    header p {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 1rem auto 0;
+    }
+
+    .main-content {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .link-card {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px var(--shadow);
+      padding: 30px;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    .link-card h2 {
+      margin-bottom: 20px;
+      color: var(--dark);
+    }
+
+    .user-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 20px 0;
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 12px;
+      border: 1px solid #e0e0e0;
+    }
+
+    .user-link input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 1rem;
+      padding: 5px;
+    }
+
+    .btn {
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 14px 32px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      margin-top: 10px;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 18px rgba(26, 115, 232, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .confession-form {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px var(--shadow);
+      padding: 30px;
+      margin-bottom: 40px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 18px;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      background: white;
+      resize: vertical;
+      font-family: inherit;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      margin-bottom: 15px;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px 0 20px;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.9rem;
+      margin-top: 20px;
+    }
+
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      animation: float 15s infinite linear;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0) translateX(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 0.5; }
+      100% { transform: translateY(-100vh) translateX(100px); opacity: 0; }
+    }
+
+    .navbar {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 15px 0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      color: white;
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .nav-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .auth-buttons {
+      display: flex;
+      gap: 15px;
+    }
+
+    .auth-btn {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+    }
+
+    .auth-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      color: white;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid white;
+    }
+
+    .error {
+      color: #e53935;
+      font-size: 0.95rem;
+      margin-top: 10px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .success {
+      color: #34a853;
+      font-size: 0.95rem;
+      margin-top: 10px;
+      text-align: center;
+      font-weight: 500;
+    }
+  </style>
 </head>
-
 <body>
-  <!-- Animated background particles -->
   <div class="particles" id="particles"></div>
-
-  <header>
-    <h1>Anonymous Message Wall</h1>
-    <p>Share your thoughts freely without revealing your identity</p>
-  </header>
-
-  <main>
-    <section class="confession-form">
-      <form id="confessionForm">
-        <textarea 
-          id="confessionInput" 
-          placeholder="What's on your mind? Share your anonymous message here... (max 1000 characters)" 
-          maxlength="1000"
-          required></textarea>
-        <div class="form-footer">
-          <span id="charCount">0/1000</span>
-          <button type="submit">
-            <i class="fas fa-paper-plane"></i>
-            Post Message
-          </button>
-        </div>
-        <p id="errorMsg" class="error"></p>
-      </form>
-    </section>
-
-    <section class="confessions-feed">
-      <h2>Recent Messages</h2>
-      <div id="confessionsContainer">
-        <!-- Loader -->
-        <div class="loader" id="loader">
-          <div class="loader-spinner"></div>
-        </div>
-
-        <!-- Empty state -->
-        <div id="emptyState" class="empty-state" style="display: none;">
-          <i class="fas fa-comment-slash"></i>
-          <p>No messages yet. Be the first to share!</p>
-        </div>
+  
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="/" class="logo">Anonymous Wall</a>
+      <div class="auth-buttons" id="authButtons">
+        <button id="loginBtn" class="auth-btn">Login</button>
+        <button id="registerBtn" class="auth-btn">Register</button>
       </div>
-      <!-- Load More Button Container -->
-      <div id="loadMoreContainer" style="text-align: center; margin: 20px 0;"></div>
-    </section>
-  </main>
+      <div class="user-menu" id="userMenu" style="display: none;">
+        <img id="userAvatar" class="user-avatar" src="" alt="Avatar">
+        <span id="usernameDisplay"></span>
+        <button id="dashboardBtn" class="auth-btn">Dashboard</button>
+        <button id="logoutBtn" class="auth-btn">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header>
+      <h1>Anonymous Confession Wall</h1>
+      <p>Share your thoughts freely without revealing your identity</p>
+    </header>
+
+    <div class="main-content">
+      <div class="link-card">
+        <h2>Your Unique Confession Link</h2>
+        <div class="user-link">
+          <input type="text" id="userLink" readonly>
+          <button id="copyLinkBtn" class="auth-btn"><i class="fas fa-copy"></i></button>
+        </div>
+        <p>Share this link with friends to receive anonymous confessions</p>
+        <a href="#" id="dashboardLink" class="btn"><i class="fas fa-tachometer-alt"></i> Go to Dashboard</a>
+      </div>
+
+      <div class="confession-form">
+        <h2>Send an Anonymous Confession</h2>
+        <p>Enter a link from another user to send them an anonymous message</p>
+        <input type="text" id="recipientLink" placeholder="https://yourdomain.com/u/abc123" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #e0e0e0;">
+        <textarea id="confessionInput" placeholder="Type your anonymous confession here... (max 500 characters)" maxlength="500"></textarea>
+        <button id="sendConfessionBtn" class="btn"><i class="fas fa-paper-plane"></i> Send Confession</button>
+        <div id="confessionStatus"></div>
+      </div>
+    </div>
+  </div>
 
   <footer>
-    <p>All messages are anonymous &bull; Be kind to others &bull; <a href="#" id="privacyLink">Privacy Policy</a></p>
-  <br>
-  <p class="copyright">
-                &copy; 2025 John Michael Lou Chiong. All Rights Reserved.
-            </p>
-
+    <p>All messages are anonymous &bull; Be kind to others &bull; Privacy Policy</p>
   </footer>
 
-  <script src="script.js"></script>
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAKO8FN5RztfJ4vqVO-2BksvDjin2naPBw",
+      authDomain: "anonymous-messge-5ac05.firebaseapp.com",
+      projectId: "anonymous-messge-5ac05",
+      storageBucket: "anonymous-messge-5ac05.appspot.com",
+      messagingSenderId: "328794885867",
+      appId: "1:328794885867:web:2199b6b362b16cec8978ae",
+      measurementId: "G-Z8EFD1R4GW"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    const usersRef = db.collection("users");
+    const confessionsRef = db.collection("confessions");
+
+    // DOM Elements
+    const authButtons = document.getElementById('authButtons');
+    const userMenu = document.getElementById('userMenu');
+    const usernameDisplay = document.getElementById('usernameDisplay');
+    const userAvatar = document.getElementById('userAvatar');
+    const userLink = document.getElementById('userLink');
+    const dashboardLink = document.getElementById('dashboardLink');
+    const copyLinkBtn = document.getElementById('copyLinkBtn');
+    const recipientLink = document.getElementById('recipientLink');
+    const confessionInput = document.getElementById('confessionInput');
+    const sendConfessionBtn = document.getElementById('sendConfessionBtn');
+    const confessionStatus = document.getElementById('confessionStatus');
+    const loginBtn = document.getElementById('loginBtn');
+    const registerBtn = document.getElementById('registerBtn');
+    const dashboardBtn = document.getElementById('dashboardBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const particles = document.getElementById('particles');
+
+    // State
+    let currentUser = null;
+    let userProfile = null;
+
+    // Generate unique link ID
+    function generateLinkID() {
+      const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let result = '';
+      for (let i = 0; i < 10; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
+
+    // Create particles background
+    function createParticles() {
+      const particleCount = Math.floor(window.innerWidth / 15);
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        
+        const size = Math.random() * 3 + 1;
+        const posX = Math.random() * 100;
+        const posY = Math.random() * 100;
+        const duration = Math.random() * 20 + 10;
+        const delay = Math.random() * -20;
+        const opacity = Math.random() * 0.3 + 0.1;
+        
+        particle.style.cssText = `
+          width: ${size}px;
+          height: ${size}px;
+          left: ${posX}%;
+          top: ${posY}%;
+          animation-duration: ${duration}s;
+          animation-delay: ${delay}s;
+          opacity: ${opacity};
+          background: rgba(255, 255, 255, ${Math.random() * 0.4 + 0.1});
+        `;
+        
+        particles.appendChild(particle);
+      }
+    }
+
+    // Auth state listener
+    auth.onAuthStateChanged(async user => {
+      currentUser = user;
+      if (user) {
+        // User is signed in
+        authButtons.style.display = 'none';
+        userMenu.style.display = 'flex';
+        
+        // Get user profile
+        const userDoc = await usersRef.doc(user.uid).get();
+        if (userDoc.exists) {
+          userProfile = userDoc.data();
+          
+          // Display user info
+          const displayName = user.displayName || "Anonymous User";
+          usernameDisplay.textContent = displayName;
+          userAvatar.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random&color=fff`;
+          
+          // Display user link
+          userLink.value = `${window.location.origin}/u/${userProfile.linkID}`;
+          dashboardLink.href = `/dashboard.html?uid=${user.uid}`;
+        } else {
+          // Create user profile if it doesn't exist
+          const linkID = generateLinkID();
+          await usersRef.doc(user.uid).set({
+            uid: user.uid,
+            displayName: user.displayName || "Anonymous User",
+            email: user.email,
+            linkID: linkID,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            avatar: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || "Anonymous")}&background=random&color=fff`
+          });
+          
+          userProfile = {
+            linkID: linkID,
+            displayName: user.displayName || "Anonymous User"
+          };
+          
+          userLink.value = `${window.location.origin}/u/${linkID}`;
+          dashboardLink.href = `/dashboard.html?uid=${user.uid}`;
+        }
+      } else {
+        // User is signed out
+        authButtons.style.display = 'flex';
+        userMenu.style.display = 'none';
+        userLink.value = "Login to get your unique link";
+        dashboardLink.href = "#";
+      }
+    });
+
+    // Event Listeners
+    copyLinkBtn.addEventListener('click', () => {
+      userLink.select();
+      document.execCommand('copy');
+      showStatus('Link copied to clipboard!', 'success');
+    });
+
+    sendConfessionBtn.addEventListener('click', async () => {
+      const link = recipientLink.value.trim();
+      const message = confessionInput.value.trim();
+      
+      if (!link) {
+        showStatus('Please enter a recipient link', 'error');
+        return;
+      }
+      
+      if (!message) {
+        showStatus('Please enter a confession message', 'error');
+        return;
+      }
+      
+      // Extract link ID from URL
+      const linkParts = link.split('/');
+      const linkID = linkParts[linkParts.length - 1];
+      
+      try {
+        // Get recipient user by link ID
+        const userQuery = await usersRef.where('linkID', '==', linkID).limit(1).get();
+        
+        if (userQuery.empty) {
+          showStatus('User not found. Please check the link', 'error');
+          return;
+        }
+        
+        const recipient = userQuery.docs[0].data();
+        
+        // Save confession
+        await confessionsRef.add({
+          toUserID: recipient.uid,
+          message: message,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          isRead: false
+        });
+        
+        showStatus('Confession sent successfully!', 'success');
+        confessionInput.value = '';
+      } catch (error) {
+        console.error('Error sending confession:', error);
+        showStatus('Failed to send confession. Please try again.', 'error');
+      }
+    });
+
+    loginBtn.addEventListener('click', () => {
+      auth.signInAnonymously().catch(error => {
+        console.error('Login error:', error);
+      });
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      auth.signOut();
+    });
+
+    dashboardBtn.addEventListener('click', () => {
+      if (currentUser) {
+        window.location.href = `/dashboard.html?uid=${currentUser.uid}`;
+      }
+    });
+
+    function showStatus(message, type) {
+      confessionStatus.textContent = message;
+      confessionStatus.className = type;
+      confessionStatus.style.display = 'block';
+      
+      setTimeout(() => {
+        confessionStatus.style.display = 'none';
+      }, 5000);
+    }
+
+    // Initialize
+    createParticles();
+  </script>
 </body>
 </html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile - Anonymous Wall</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="particles" id="particles"></div>
+  
+  <nav class="navbar">
+    <div class="container">
+      <a href="index.html" class="logo">Anonymous Wall</a>
+      <div class="auth-buttons" id="authButtons">
+        <button id="loginBtn" class="auth-btn">Login</button>
+        <button id="registerBtn" class="auth-btn">Register</button>
+      </div>
+      <div class="user-menu" id="userMenu" style="display: none;">
+        <span id="usernameDisplay"></span>
+        <button id="dashboardBtn" class="auth-btn">Dashboard</button>
+        <button id="logoutBtn" class="auth-btn">Logout</button>
+      </div>
+    </div>
+  </nav>
+  
+  <main class="profile-container">
+    <div class="user-profile" id="userProfile">
+      <div class="loader" id="profileLoader">
+        <div class="loader-spinner"></div>
+      </div>
+    </div>
+    
+    <div class="user-confessions">
+      <h2>Public Messages</h2>
+      <div id="confessionsContainer">
+        <div class="loader" id="confessionsLoader">
+          <div class="loader-spinner"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <footer>
+    <p>User profile &bull; <a href="#" id="privacyLink">Privacy Policy</a></p>
+  </footer>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAKO8FN5RztfJ4vqVO-2BksvDjin2naPBw",
+      authDomain: "anonymous-messge-5ac05.firebaseapp.com",
+      projectId: "anonymous-messge-5ac05",
+      storageBucket: "anonymous-messge-5ac05.firebasestorage.app",
+      messagingSenderId: "328794885867",
+      appId: "1:328794885867:web:2199b6b362b16cec8978ae",
+      measurementId: "G-Z8EFD1R4GW"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const usersRef = db.collection("users");
+    const confessionsRef = db.collection("confessions");
+    
+    // DOM Elements
+    const userProfile = document.getElementById('userProfile');
+    const profileLoader = document.getElementById('profileLoader');
+    const confessionsContainer = document.getElementById('confessionsContainer');
+    const confessionsLoader = document.getElementById('confessionsLoader');
+    const privacyLink = document.getElementById('privacyLink');
+    
+    // Privacy policy
+    privacyLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      alert(`Privacy Policy:\n\n` +
+            `• All messages are completely anonymous\n` +
+            `• No personal information is collected\n` +
+            `• Messages are stored securely\n` +
+            `• Inappropriate content may be removed\n` +
+            `• Data is never shared with third parties`);
+    });
+    
+    // Get profile URL from path
+    const profileURL = window.location.pathname.split('/profile/')[1];
+    
+    // Format date
+    function formatDate(date) {
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    }
+    
+    // Load profile
+    async function loadProfile() {
+      try {
+        const userQuery = await usersRef.where('profileURL', '==', profileURL).limit(1).get();
+        
+        if (userQuery.empty) {
+          userProfile.innerHTML = '<p class="error">User not found</p>';
+          profileLoader.style.display = 'none';
+          return;
+        }
+        
+        const userDoc = userQuery.docs[0];
+        const userData = userDoc.data();
+        
+        const profileHTML = `
+          <img src="${userData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.displayName)}&background=random&color=fff`}" 
+               class="user-avatar" alt="Avatar">
+          <div class="user-info">
+            <h2>${userData.displayName}</h2>
+            <p>Member since: ${userData.createdAt.toDate().toLocaleDateString()}</p>
+          </div>
+        `;
+        
+        userProfile.innerHTML = profileHTML;
+        profileLoader.style.display = 'none';
+        
+        // Load user's public confessions
+        const confessionsQuery = confessionsRef
+          .where('userId', '==', userData.uid)
+          .orderBy('timestamp', 'desc');
+        
+        const snapshot = await confessionsQuery.get();
+        
+        if (snapshot.empty) {
+          confessionsContainer.innerHTML = '<p class="no-confessions">No public messages yet.</p>';
+          confessionsLoader.style.display = 'none';
+          return;
+        }
+        
+        let confessionsHTML = '';
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          confessionsHTML += `
+            <div class="confession-card">
+              <p class="confession-text">${data.text}</p>
+              <div class="confession-footer">
+                <span class="confession-time">
+                  <i class="far fa-clock"></i>
+                  ${formatDate(data.timestamp.toDate())}
+                </span>
+                <div class="confession-actions">
+                  <span class="likes-count"><i class="fas fa-heart"></i> ${data.likes || 0}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        
+        confessionsContainer.innerHTML = confessionsHTML;
+        confessionsLoader.style.display = 'none';
+        
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        userProfile.innerHTML = '<p class="error">Failed to load profile</p>';
+        profileLoader.style.display = 'none';
+      }
+    }
+    
+    // Initialize profile
+    if (profileURL) {
+      loadProfile();
+    } else {
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>
