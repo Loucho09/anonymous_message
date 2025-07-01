@@ -4,8 +4,364 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anonymous Confession Wall - Registration</title>
-    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --secondary: #34a853;
+            --accent: #fbbc05;
+            --light: #f8f9fa;
+            --dark: #202124;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --shadow: rgba(0, 0, 0, 0.1);
+            --error: #e53935;
+            --success: #34a853;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+            background-attachment: fixed;
+        }
+
+        .container {
+            display: flex;
+            max-width: 1200px;
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            min-height: 80vh;
+        }
+
+        .welcome-section {
+            flex: 1;
+            background: linear-gradient(rgba(26, 115, 232, 0.9), rgba(52, 168, 83, 0.8)), 
+                         url('https://images.unsplash.com/photo-1516387938699-a93567ec168e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .registration-section {
+            flex: 1;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .features {
+            margin: 30px 0;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .feature i {
+            font-size: 1.5rem;
+            margin-right: 15px;
+            width: 40px;
+            text-align: center;
+            color: var(--accent);
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #777;
+            transition: all 0.3s ease;
+            text-align: center;
+            flex: 1;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+            margin-bottom: -2px;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 4px 15px rgba(26, 115, 232, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(26, 115, 232, 0.4);
+        }
+
+        .btn-google {
+            background: white;
+            color: #555;
+            border: 1px solid #ddd;
+        }
+
+        .btn-facebook {
+            background: #4267B2;
+            color: white;
+        }
+
+        .btn-anonymous {
+            background: #5f6368;
+            color: white;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+            color: #777;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .divider span {
+            padding: 0 15px;
+            font-size: 0.9rem;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+
+        .error {
+            background: rgba(229, 57, 53, 0.1);
+            color: var(--error);
+            border: 1px solid rgba(229, 57, 53, 0.2);
+        }
+
+        .success {
+            background: rgba(52, 168, 83, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(52, 168, 83, 0.2);
+        }
+
+        .avatar-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #eee;
+            margin: 0 auto 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border: 3px solid var(--primary);
+        }
+
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-options {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .avatar-option {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+        }
+
+        .avatar-option:hover, .avatar-option.selected {
+            border-color: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .step {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #eee;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 10px;
+            font-weight: bold;
+            color: #777;
+        }
+
+        .step.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .step-line {
+            flex: 1;
+            height: 2px;
+            background: #eee;
+            margin: auto 0;
+            max-width: 50px;
+        }
+
+        .step-line.active {
+            background: var(--primary);
+        }
+
+        .step-content {
+            display: none;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .welcome-section {
+                padding: 30px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .registration-section, .welcome-section {
+                padding: 25px;
+            }
+            
+            .avatar-options {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -63,11 +419,11 @@
                     <i class="fas fa-envelope"></i> Continue with Email
                 </button>
                 
-                <button class="btn btn-google">
+                <button class="btn btn-google" id="googleRegisterBtn">
                     <i class="fab fa-google"></i> Continue with Google
                 </button>
                 
-                <button class="btn btn-facebook">
+                <button class="btn btn-facebook" id="facebookRegisterBtn">
                     <i class="fab fa-facebook-f"></i> Continue with Facebook
                 </button>
                 
@@ -120,7 +476,7 @@
                 <h1>Customize Your Profile</h1>
                 
                 <div class="avatar-preview" id="avatarPreview">
-                    <i class="fas fa-user fa-3x" style="color: #777;"></i>
+                    <i class="fas fa-smile fa-2x" style="color: #FFADAD;"></i>
                 </div>
                 
                 <p style="text-align: center; margin-bottom: 20px;">Choose an avatar:</p>
@@ -150,224 +506,289 @@
         </div>
     </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-  <script>
-    // Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyAKO8FN5RztfJ4vqVO-2BksvDjin2naPBw",
-      authDomain: "anonymous-messge-5ac05.firebaseapp.com",
-      projectId: "anonymous-messge-5ac05",
-      storageBucket: "anonymous-messge-5ac05.appspot.com",
-      messagingSenderId: "328794885867",
-      appId: "1:328794885867:web:2199b6b362b16cec8978ae",
-      measurementId: "G-Z8EFD1R4GW"
-    };
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAKO8FN5RztfJ4vqVO-2BksvDjin2naPBw",
+            authDomain: "anonymous-messge-5ac05.firebaseapp.com",
+            projectId: "anonymous-messge-5ac05",
+            storageBucket: "anonymous-messge-5ac05.appspot.com",
+            messagingSenderId: "328794885867",
+            appId: "1:328794885867:web:2199b6b362b16cec8978ae",
+            measurementId: "G-Z8EFD1R4GW"
+        };
 
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-    // DOM Elements
-    const step1 = document.getElementById('step1');
-    const step2 = document.getElementById('step2');
-    const step3 = document.getElementById('step3');
-    const emailRegisterBtn = document.getElementById('emailRegisterBtn');
-    const anonymousBtn = document.getElementById('anonymousBtn');
-    const registerBtn = document.getElementById('registerBtn');
-    const completeBtn = document.getElementById('completeBtn');
-    const step2Status = document.getElementById('step2Status');
-    const step3Status = document.getElementById('step3Status');
-    const avatarOptions = document.querySelectorAll('.avatar-option');
-    const avatarPreview = document.getElementById('avatarPreview');
+        // DOM Elements
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        const emailRegisterBtn = document.getElementById('emailRegisterBtn');
+        const googleRegisterBtn = document.getElementById('googleRegisterBtn');
+        const facebookRegisterBtn = document.getElementById('facebookRegisterBtn');
+        const anonymousBtn = document.getElementById('anonymousBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const completeBtn = document.getElementById('completeBtn');
+        const step2Status = document.getElementById('step2Status');
+        const step3Status = document.getElementById('step3Status');
+        const avatarOptions = document.querySelectorAll('.avatar-option');
+        const avatarPreview = document.getElementById('avatarPreview');
 
-    // Current state
-    let currentStep = 1;
-    let registrationMethod = '';
-    let selectedAvatar = 1;
-    let userData = {};
+        // Current state
+        let currentStep = 1;
+        let registrationMethod = '';
+        let selectedAvatar = 1;
+        let userData = {};
 
-    // Switch to step 2 (email registration)
-    emailRegisterBtn.addEventListener('click', () => {
-      registrationMethod = 'email';
-      currentStep = 2;
-      updateStepDisplay();
-    });
+        // Generate unique link ID
+        function generateLinkID() {
+            const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < 10; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
 
-    // Anonymous registration
-    anonymousBtn.addEventListener('click', () => {
-      registrationMethod = 'anonymous';
-      
-      // Show loading state
-      step2Status.style.display = 'block';
-      step2Status.className = 'status-message';
-      step2Status.textContent = 'Creating anonymous session...';
-      step2Status.classList.add('success');
-      
-      // Create anonymous user
-      auth.signInAnonymously()
-        .then((userCredential) => {
-          // Signed in anonymously
-          const user = userCredential.user;
-          
-          // Create user document
-          return db.collection('users').doc(user.uid).set({
-            uid: user.uid,
-            displayName: `Anonymous${Math.floor(Math.random() * 10000)}`,
-            avatar: `avatar-${Math.floor(Math.random() * 8) + 1}`,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            isAnonymous: true
-          });
-        })
-        .then(() => {
-          // Redirect to dashboard
-          step2Status.textContent = 'Success! Redirecting to your dashboard...';
-          setTimeout(() => {
-            window.location.href = 'dashboard.html';
-          }, 1500);
-        })
-        .catch((error) => {
-          step2Status.textContent = `Error: ${error.message}`;
-          step2Status.classList.add('error');
+        // Switch to step 2 (email registration)
+        emailRegisterBtn.addEventListener('click', () => {
+            registrationMethod = 'email';
+            currentStep = 2;
+            updateStepDisplay();
         });
-    });
 
-    // Handle email registration
-    registerBtn.addEventListener('click', () => {
-      const name = document.getElementById('name').value;
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      const confirmPassword = document.getElementById('confirmPassword').value;
-      
-      // Validation
-      if (!name || !email || !password || !confirmPassword) {
-        showError(step2Status, 'All fields are required');
-        return;
-      }
-      
-      if (password !== confirmPassword) {
-        showError(step2Status, 'Passwords do not match');
-        return;
-      }
-      
-      if (password.length < 6) {
-        showError(step2Status, 'Password must be at least 6 characters');
-        return;
-      }
-      
-      // Show loading state
-      step2Status.style.display = 'block';
-      step2Status.className = 'status-message';
-      step2Status.textContent = 'Creating account...';
-      step2Status.classList.add('success');
-      
-      // Create user with email/password
-      auth.createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          // User created
-          const user = userCredential.user;
-          
-          // Store temporary data for next step
-          userData = {
-            uid: user.uid,
-            displayName: name,
-            email: email
-          };
-          
-          // Move to next step
-          currentStep = 3;
-          updateStepDisplay();
-        })
-        .catch((error) => {
-          showError(step2Status, error.message);
+        // Google registration
+        googleRegisterBtn.addEventListener('click', () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    handleSocialLogin(result.user);
+                })
+                .catch((error) => {
+                    showError(step2Status, error.message);
+                });
         });
-    });
 
-    // Handle profile completion
-    completeBtn.addEventListener('click', () => {
-      const bio = document.getElementById('bio').value;
-      
-      // Show loading state
-      step3Status.style.display = 'block';
-      step3Status.className = 'status-message';
-      step3Status.textContent = 'Saving profile...';
-      step3Status.classList.add('success');
-      
-      // Create user document
-      db.collection('users').doc(userData.uid).set({
-        uid: userData.uid,
-        displayName: userData.displayName,
-        email: userData.email,
-        avatar: `avatar-${selectedAvatar}`,
-        bio: bio,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        isAnonymous: false
-      })
-      .then(() => {
-        step3Status.textContent = 'Success! Redirecting to your dashboard...';
-        setTimeout(() => {
-          window.location.href = 'dashboard.html';
-        }, 1500);
-      })
-      .catch((error) => {
-        showError(step3Status, error.message);
-      });
-    });
+        // Facebook registration
+        facebookRegisterBtn.addEventListener('click', () => {
+            const provider = new firebase.auth.FacebookAuthProvider();
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    handleSocialLogin(result.user);
+                })
+                .catch((error) => {
+                    showError(step2Status, error.message);
+                });
+        });
 
-    // Avatar selection
-    avatarOptions.forEach((option, index) => {
-      option.addEventListener('click', () => {
-        // Remove selected class from all options
-        avatarOptions.forEach(opt => opt.classList.remove('selected'));
-        
-        // Add selected class to clicked option
-        option.classList.add('selected');
-        
-        // Update preview
-        avatarPreview.innerHTML = option.innerHTML;
-        avatarPreview.style.background = option.style.background;
-        
-        // Store selection
-        selectedAvatar = index + 1;
-      });
-    });
+        // Handle social login
+        function handleSocialLogin(user) {
+            const linkID = generateLinkID();
+            const avatar = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName)}&background=random&color=fff`;
+            
+            db.collection('users').doc(user.uid).set({
+                uid: user.uid,
+                displayName: user.displayName || `User${Math.floor(Math.random() * 10000)}`,
+                email: user.email,
+                avatar: avatar,
+                linkID: linkID,
+                profileURL: linkID,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                isAnonymous: false
+            })
+            .then(() => {
+                window.location.href = 'dashboard.html?uid=' + user.uid;
+            })
+            .catch((error) => {
+                showError(step2Status, error.message);
+            });
+        }
 
-    // Helper functions
-    function updateStepDisplay() {
-      // Hide all steps
-      step1.classList.remove('active');
-      step2.classList.remove('active');
-      step3.classList.remove('active');
-      
-      // Show current step
-      if (currentStep === 1) step1.classList.add('active');
-      if (currentStep === 2) step2.classList.add('active');
-      if (currentStep === 3) step3.classList.add('active');
-      
-      // Update step indicator
-      const steps = document.querySelectorAll('.step');
-      const stepLines = document.querySelectorAll('.step-line');
-      
-      steps.forEach((step, index) => {
-        step.classList.toggle('active', index < currentStep);
-      });
-      
-      stepLines.forEach((line, index) => {
-        line.classList.toggle('active', index < currentStep - 1);
-      });
-    }
+        // Anonymous registration
+        anonymousBtn.addEventListener('click', () => {
+            registrationMethod = 'anonymous';
+            
+            // Show loading state
+            step2Status.style.display = 'block';
+            step2Status.className = 'status-message';
+            step2Status.textContent = 'Creating anonymous session...';
+            step2Status.classList.add('success');
+            
+            // Create anonymous user
+            auth.signInAnonymously()
+                .then((userCredential) => {
+                    // Signed in anonymously
+                    const user = userCredential.user;
+                    const linkID = generateLinkID();
+                    const displayName = `Anonymous${Math.floor(Math.random() * 10000)}`;
+                    const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random&color=fff`;
+                    
+                    // Create user document
+                    return db.collection('users').doc(user.uid).set({
+                        uid: user.uid,
+                        displayName: displayName,
+                        avatar: avatar,
+                        linkID: linkID,
+                        profileURL: linkID,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        isAnonymous: true
+                    });
+                })
+                .then(() => {
+                    // Redirect to dashboard
+                    step2Status.textContent = 'Success! Redirecting to your dashboard...';
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html?uid=' + auth.currentUser.uid;
+                    }, 1500);
+                })
+                .catch((error) => {
+                    step2Status.textContent = `Error: ${error.message}`;
+                    step2Status.classList.add('error');
+                });
+        });
 
-    function showError(element, message) {
-      element.textContent = message;
-      element.style.display = 'block';
-      element.className = 'status-message error';
-    }
+        // Handle email registration
+        registerBtn.addEventListener('click', () => {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            // Validation
+            if (!name || !email || !password || !confirmPassword) {
+                showError(step2Status, 'All fields are required');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showError(step2Status, 'Passwords do not match');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showError(step2Status, 'Password must be at least 6 characters');
+                return;
+            }
+            
+            // Show loading state
+            step2Status.style.display = 'block';
+            step2Status.className = 'status-message';
+            step2Status.textContent = 'Creating account...';
+            step2Status.classList.add('success');
+            
+            // Create user with email/password
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // User created
+                    const user = userCredential.user;
+                    
+                    // Store temporary data for next step
+                    userData = {
+                        uid: user.uid,
+                        displayName: name,
+                        email: email
+                    };
+                    
+                    // Move to next step
+                    currentStep = 3;
+                    updateStepDisplay();
+                })
+                .catch((error) => {
+                    showError(step2Status, error.message);
+                });
+        });
 
-    // Initialize avatar preview
-    avatarPreview.innerHTML = document.querySelector('.avatar-option.selected').innerHTML;
-    avatarPreview.style.background = document.querySelector('.avatar-option.selected').style.background;
-  </script>
+        // Handle profile completion
+        completeBtn.addEventListener('click', () => {
+            const bio = document.getElementById('bio').value;
+            const linkID = generateLinkID();
+            const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.displayName)}&background=random&color=fff`;
+            
+            // Show loading state
+            step3Status.style.display = 'block';
+            step3Status.className = 'status-message';
+            step3Status.textContent = 'Saving profile...';
+            step3Status.classList.add('success');
+            
+            // Create user document
+            db.collection('users').doc(userData.uid).set({
+                uid: userData.uid,
+                displayName: userData.displayName,
+                email: userData.email,
+                avatar: avatar,
+                linkID: linkID,
+                profileURL: linkID,
+                bio: bio,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                isAnonymous: false
+            })
+            .then(() => {
+                step3Status.textContent = 'Success! Redirecting to your dashboard...';
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html?uid=' + userData.uid;
+                }, 1500);
+            })
+            .catch((error) => {
+                showError(step3Status, error.message);
+            });
+        });
+
+        // Avatar selection
+        avatarOptions.forEach((option, index) => {
+            option.addEventListener('click', () => {
+                // Remove selected class from all options
+                avatarOptions.forEach(opt => opt.classList.remove('selected'));
+                
+                // Add selected class to clicked option
+                option.classList.add('selected');
+                
+                // Update preview
+                avatarPreview.innerHTML = option.innerHTML;
+                avatarPreview.style.background = option.style.background;
+                
+                // Store selection
+                selectedAvatar = index + 1;
+            });
+        });
+
+        // Helper functions
+        function updateStepDisplay() {
+            // Hide all steps
+            step1.classList.remove('active');
+            step2.classList.remove('active');
+            step3.classList.remove('active');
+            
+            // Show current step
+            if (currentStep === 1) step1.classList.add('active');
+            if (currentStep === 2) step2.classList.add('active');
+            if (currentStep === 3) step3.classList.add('active');
+            
+            // Update step indicator
+            const steps = document.querySelectorAll('.step');
+            const stepLines = document.querySelectorAll('.step-line');
+            
+            steps.forEach((step, index) => {
+                step.classList.toggle('active', index < currentStep);
+            });
+            
+            stepLines.forEach((line, index) => {
+                line.classList.toggle('active', index < currentStep - 1);
+            });
+        }
+
+        function showError(element, message) {
+            element.textContent = message;
+            element.style.display = 'block';
+            element.className = 'status-message error';
+        }
+
+        // Initialize avatar preview
+        avatarPreview.innerHTML = document.querySelector('.avatar-option.selected').innerHTML;
+        avatarPreview.style.background = document.querySelector('.avatar-option.selected').style.background;
+    </script>
 </body>
 </html>

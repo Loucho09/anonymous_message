@@ -495,10 +495,14 @@
       }
     });
 
+    // Redirect to registration page
     loginBtn.addEventListener('click', () => {
-      auth.signInAnonymously().catch(error => {
-        console.error('Login error:', error);
-      });
+      window.location.href = 'register.html';
+    });
+
+    // Redirect to registration page
+    registerBtn.addEventListener('click', () => {
+      window.location.href = 'register.html';
     });
 
     logoutBtn.addEventListener('click', () => {
@@ -525,4 +529,5 @@
     createParticles();
   </script>
 </body>
+</html>
 </html>
